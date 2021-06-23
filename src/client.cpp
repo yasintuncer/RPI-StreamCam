@@ -6,6 +6,12 @@
 #include "client.h"
 tcp_client::tcp_client(std::string ip_adress, int portno)
 {
+    this->ip_adress = ip_adress;
+    this->portno = portno;
+}
+
+bool tcp_client::conn()
+{
     this->isOpened = true;
     // create socket
     this->sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -26,10 +32,7 @@ tcp_client::tcp_client(std::string ip_adress, int portno)
     bcopy((char*)this->server->h_addr, (char *)&this->server_addr.sin_addr.s_addr, this->server->h_length);
     this->portno = portno;
     server_addr.sin_port = htons(this->portno);
-}
 
-bool tcp_client::conn()
-{
     if (connect(this->sockfd, (struct sockaddr *)&this->server_addr, sizeof(this->server_addr)) < 0)
         this->isConnected = false;
     else

@@ -2,112 +2,180 @@
 #include "stream_cam.h"
 #include <opencv2/core/core.hpp>
 
-const std::string config = "param.json";
+#define NAMED_WINDOW "STREAM"
+const std::string config = "/home/pi/Projects/StreamCam/config.json";
 
-StreamCam::StreamCam()
+static inline void int_to_char_array( char *a, int value)
 {
-    this->params = new ParameterEngine(config);
+    a[0] = (value& 0xFF);
+    a[1] = ((value >>8)&0xFF);
+    a[2] = ((value >>16)&0xFF);
+    a[3] = ((value >>24)&0xFF);
     
+    return;
+}
+
+
+Stream::Stream()
+{
+    pm = new ParameterEngine(config);
+    if ( pm->source == SourceMode::CAPTURE)
+    {
+        initCam();
+        std::cout << "Camera initilazed..\n"; 
+    }
+    else if (pm->source == SourceMode::MEDIA || pm->source == SourceMode::VIDEO)
+    {/** this will be reserved media file streaming **/
+        exit(0);
+    }
+    else 
+    {std::cout << "Undefined Source Type" << std::endl;
+        exit(0);
+    }
+    if(pm->stream.mode == StreamMode::TCP)
+    {
+        initClient();
+        isStreamOnTCP = true;
+    } 
+    else if(pm->stream.mode == StreamMode::DISPLAY)
+    {
+            isStreamOnDisplay = true;
+    }
+    else 
+    {
+        std::cout <<  "Undefined Streamn Type" << std::endl;
+        exit(0);
+    }
+        
+}
+
+void Stream::initCam()
+{
     this->cam = new raspicam::RaspiCam_Still_Cv();
+    isCamInit = true;
+    if(cam->set(cv::CAP_PROP_FORMAT, pm->camera.format))
+    {
+        std::cout << "Invalid format : " << pm->camera.format << std::endl;
+        isCamInit = false;
+    }
+    if(cam->set(cv::CAP_PROP_FRAME_WIDTH, pm->camera.width))
+    {
+        std::cout << "Invalid Frame Width : " << pm->camera.width << std::endl;
+        isCamInit = false;
+    }
+    if(cam->set(cv::CAP_PROP_FRAME_HEIGHT, pm->camera.height))
+    {
+        std::cout << "Invalid Frame Width : " << pm->camera.height << std::endl;
+        isCamInit = false;
+    }
+    if(cam->set(cv::CAP_PROP_FPS, pm->camera.fps))
+    {
+        std::cout << "Invalid Frame Per Second : " << pm->camera.fps << std::endl;
+        isCamInit = false;
+    }
+    return ;
 }
-bool StreamCam::init_camera_properties()
+
+
+void Stream::initClient()
 {
-    if ( ! this->cam->set(cv::CAP_PROP_FRAME_WIDTH, this->params->width))
-    {
-        std::cout << "Unknown properties Width : " << this->params->width << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_FRAME_HEIGHT, this->params->height))
-    {
-        std::cout << "Unknown properties Height : " << this->params->height << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_FORMAT, this->params->format))
-    {
-        std::cout << "Unknown properties Format : " << this->params->format << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_BRIGHTNESS, this->params->brightness))
-    {
-        std::cout << "Unknown properties Brightness : " << this->params->brightness << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_CONTRAST, this->params->contrast))
-    {
-        std::cout << "Unknown properties Contrast : " << this->params->contrast << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_CONTRAST, this->params->saturation))
-    {
-        std::cout << "Unknown properties Saturation : " << this->params->saturation << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_GAIN, this->params->gain))
-    {
-        std::cout << "Unknown properties gain : " << this->params->gain << std::endl;
-        return false;
-    }
-    if (! (this->params->mode == Stream_Mode::DISPLAY || this->params->mode == Stream_Mode::PORT))
-    {
-        std::cout << "Unknown Work Mode : " << this->params->mode << std::endl;
-        std::cout << "Please correct the mode parameter in the JSON file.\navailable choices:\n\tDISPLAY : 0\n\tPORT: 1 "; 
-        return false;
-    }
-    if((this->params->ip_address.empty()) & this->params->mode == Stream_Mode::PORT)
-    {
-        std::cout << "İp address or port error" << std::endl;
-        return false;
-    }
-
+    client = new tcp_client(pm->stream.ip_address, pm->stream.port);
+    
+    if( client->isOpened)
+        isClientInit = true;
+    else 
+        isClientInit = false;
 }
 
-bool StreamCam::get_camera_properties()
+void Stream::updateOutputBuffer(cv::Mat image)
 {
-    if ( ! this->cam->set(cv::CAP_PROP_FRAME_WIDTH, this->params->width))
-    {
-        std::cout << "Unknown properties Width : " << this->params->width << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_FRAME_HEIGHT, this->params->height))
-    {
-        std::cout << "Unknown properties Height : " << this->params->height << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_FORMAT, this->params->format))
-    {
-        std::cout << "Unknown properties Format : " << this->params->format << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_BRIGHTNESS, this->params->brightness))
-    {
-        std::cout << "Unknown properties Brightness : " << this->params->brightness << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_CONTRAST, this->params->contrast))
-    {
-        std::cout << "Unknown properties Contrast : " << this->params->contrast << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_CONTRAST, this->params->saturation))
-    {
-        std::cout << "Unknown properties Saturation : " << this->params->saturation << std::endl;
-        return false;
-    }
-    if (! this->cam->set(cv::CAP_PROP_GAIN, this->params->gain))
-    {
-        std::cout << "Unknown properties gain : " << this->params->gain << std::endl;
-        return false;
-    }
-    if (! (this->params->mode == Stream_Mode::DISPLAY || this->params->mode == Stream_Mode::PORT))
-    {
-        std::cout << "Unknown Work Mode : " << this->params->mode << std::endl;
-        std::cout << "Please correct the mode parameter in the JSON file.\navailable choices:\n\tDISPLAY : 0\n\tPORT: 1 "; 
-        return false;
-    }
-    if((this->params->ip_address.empty()) & this->params->mode == Stream_Mode::PORT)
-    {
-        std::cout << "İp address or port error" << std::endl;
-        return false;
-    }
+    int width    = image.cols;
+    int heigth   = image.rows;
+    int channels = image.channels();
+    int new_buffer_size =  sizeof(width) + sizeof(heigth) + sizeof(channels) + width * heigth * channels;
+
+    if (output_buffer != nullptr)
+        delete output_buffer;
+     output_buffer = new char[new_buffer_size]();
+    char a[4];
+    int_to_char_array(a,width);
+    std::memcpy(output_buffer, a,sizeof(int));
+    int_to_char_array(a,heigth);
+    std::memcpy(output_buffer + sizeof(int), a, sizeof(int));
+    int_to_char_array(a, channels);
+    std::memcpy(output_buffer + sizeof(int) * 2, a, sizeof(int));
+
+    std::memcpy(output_buffer + 3 * sizeof(int), image.data, width*heigth*channels);
+    buffer_size = new_buffer_size;
 
 }
+int Stream::streamOnTcp()
+{   
+    if(!client->conn())
+    {
+        std::cout << "Connection refused.." << std::endl;
+        return -1;
+    }
+    updateOutputBuffer(frame);
+    client->send_data(output_buffer, buffer_size);
+    
+    client->close_socket();
+    return 0;
+}
+int Stream::streamOnDisplay()
+{
+    cv::namedWindow(NAMED_WINDOW, cv::WINDOW_NORMAL);
+    cv::imshow(NAMED_WINDOW,frame);
+    return 0;
+}
+
+
+void Stream::run()
+{   
+    if (pm->stream.mode == StreamMode::TCP && pm->source == SourceMode::CAPTURE)
+    {
+        if(!cam->open())
+        {
+            std::cout << "Camera Couldn't opened.\n";
+            exit(0);    
+        }
+        int n = 0;
+        while(n >= 0)
+        {
+            cam->grab();
+            cam->retrieve(frame);
+            if(!frame.empty())
+                n = streamOnTcp();
+        }
+        cam->release();
+        client->close_socket();
+    }
+    else if(pm->stream.mode == StreamMode::TCP && pm->source != SourceMode::CAPTURE)
+    {
+        
+        
+    }
+    else if(pm->stream.mode == StreamMode::DISPLAY && pm->source == SourceMode::CAPTURE)
+    {
+        if(!cam->open())
+        {
+            std::cout << "Camera Couldn't opened.\n";
+            exit(0);    
+        }
+        int n = 0;
+        while(n >= 0)
+        {
+            cam->grab();
+            cam->retrieve(frame);
+            if(!frame.empty())
+                n = streamOnDisplay();
+        }
+
+        cam->release();
+        cv::destroyAllWindows();
+    }
+
+
+    return;
+}
+

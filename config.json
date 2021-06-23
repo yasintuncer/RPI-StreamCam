@@ -1,0 +1,14 @@
+{
+    "Width"         : 1280,
+    "Height"        : 720,
+    "Format"        : 3,
+    "Fps"           : 30,
+    "StreamMode"    : 0,
+    "SourceMode"    : 2,
+    "IpAdress"      : "192.168.2.10",
+    "Port"          : 22,
+    "MediaDirectory": "/"
+
+
+
+}

@@ -3,9 +3,9 @@
 
 int main()
 {
-    StreamCam *a;
-    a = new StreamCam();
-    a->init_camera_properties();
+    Stream *a;
+    a = new Stream();
+    a->run();
 
 
     

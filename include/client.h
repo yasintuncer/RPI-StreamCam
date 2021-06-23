@@ -13,9 +13,13 @@ class tcp_client
 {
 private:
     int sockfd, portno,n;
+    std::string ip_adress;
     struct sockaddr_in server_addr;
     struct hostent *server;
     std::string response_data = "";
+public:
+    
+
 public:
     tcp_client(std::string, int);
     ~tcp_client();
