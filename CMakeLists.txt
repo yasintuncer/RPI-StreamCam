@@ -3,6 +3,8 @@ cmake_minimum_required( VERSION 3.7.2)
 #set the project name 
 project(StreamCam)
 
+set(CMAKE_MODULE_PATH "/usr/local/lib/cmake/${CMAKE_MODULE_PATH}") 
+
 
 FIND_PACKAGE(Boost)
 IF (Boost_FOUND)
@@ -53,3 +55,15 @@ target_link_libraries(StreamCam
         ${OpenCV_LIBS} 
         ${raspicam_LIBS}
         ${raspicam_CV_LIBS} )
+
+set(AppDirectory ${PROJECT_SOURCE_DIR}/App)
+
+file(MAKE_DIRECTORY ${AppDirectory})
+
+set(FILES /home/pi/Projects/StreamCam/config.json)
+
+install(TARGETS StreamCam
+        DESTINATION ${AppDirectory})
+install(FILES ${FILES}
+        DESTINATION ${AppDirectory})
+

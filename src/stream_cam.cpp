@@ -56,17 +56,20 @@ void Stream::initCam()
     if(cam->set(cv::CAP_PROP_FORMAT, pm->camera.format))
     {
         std::cout << "Invalid format : " << pm->camera.format << std::endl;
-        isCamInit = false;
+        pm->camera.width = cam->get(cv::CAP_PROP_FORMAT);
+        std::cout << "Frame width set default :" << pm->camera.format << std::endl;
     }
     if(cam->set(cv::CAP_PROP_FRAME_WIDTH, pm->camera.width))
     {
         std::cout << "Invalid Frame Width : " << pm->camera.width << std::endl;
-        isCamInit = false;
+        pm->camera.width = cam->get(cv::CAP_PROP_FRAME_WIDTH);
+        std::cout << "Frame width set default :" << pm->camera.width << std::endl;
     }
     if(cam->set(cv::CAP_PROP_FRAME_HEIGHT, pm->camera.height))
     {
-        std::cout << "Invalid Frame Width : " << pm->camera.height << std::endl;
-        isCamInit = false;
+        std::cout << "Invalid Frame Height : " << pm->camera.height << std::endl;
+        pm->camera.height = cam->get(cv::CAP_PROP_FRAME_HEIGHT);
+        std::cout << "Frame Height set default :" << pm->camera.height << std::endl;
     }
     if(cam->set(cv::CAP_PROP_FPS, pm->camera.fps))
     {
