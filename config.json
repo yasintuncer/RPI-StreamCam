@@ -3,10 +3,10 @@
     "Height"        : 720,
     "Format"        : 3,
     "Fps"           : 30,
-    "StreamMode"    : 0,
+    "StreamMode"    : 1,
     "SourceMode"    : 2,
-    "IpAdress"      : "192.168.2.10",
-    "Port"          : 22,
+    "IpAdress"      : "192.168.2.13",
+    "Port"          : 1234,
     "MediaDirectory": "/"
 
 
