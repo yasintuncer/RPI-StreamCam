@@ -29,7 +29,7 @@ struct StreamParams
 {
     /* Stream spec */       
     StreamMode mode;
-    int port;
+    uint16_t port;
     std::string ip_address;
 };
     
@@ -68,7 +68,7 @@ class ParameterEngine
         std::cout << StreamMode::DISPLAY << std::endl;
         stream.mode              = ((root.get<int>("StreamMode")) == StreamMode::DISPLAY) ? StreamMode::DISPLAY : StreamMode::TCP;
         stream.ip_address        = root.get<std::string>("IpAdress");
-        stream.port              = root.get<int>("Port");
+        stream.port              = root.get<uint16_t>("Port");
         if (root.get<int>("SourceMode") == SourceMode::MEDIA)
             source = SourceMode::MEDIA;
         else if(root.get<int>("SourceMode") == SourceMode::VIDEO)

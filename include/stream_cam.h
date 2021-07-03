@@ -18,16 +18,11 @@ class Stream
     private:
         ParameterEngine *pm;
         raspicam::RaspiCam_Still_Cv *cam;
-        tcp_client *client;
-        char *output_buffer;
-        int buffer_size;
-        cv::Mat frame;
+        Client *client;
+        
     private:    
         void initCam();
         void initClient();
-        void updateOutputBuffer(cv::Mat);
-        int streamOnTcp();
-        int streamOnDisplay();
         
 
         

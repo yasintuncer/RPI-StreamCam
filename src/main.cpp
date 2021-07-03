@@ -6,8 +6,4 @@ int main()
     Stream *a;
     a = new Stream();
     a->run();
-
-
-    
-
 }

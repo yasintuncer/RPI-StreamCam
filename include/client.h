@@ -8,28 +8,24 @@
 #include <netdb.h>
 
 
-
-class tcp_client
+class Client
 {
+public:
+    Client();
+    Client(char *ip, uint16_t port);
+    ~Client() {closeSocket();}
+    bool connected();
+    int conHandler(char *Data, size_t size);
+    void closeSocket();
+
 private:
-    int sockfd, portno,n;
-    std::string ip_adress;
-    struct sockaddr_in server_addr;
-    struct hostent *server;
-    std::string response_data = "";
-public:
+    int sendData(char *data, size_t size);
+    int readData(char *data, size_t size);
     
-
-public:
-    tcp_client(std::string, int);
-    ~tcp_client();
-
-    bool conn();
-    int send_data(char *data, int data_length);
-    int read_data(char *data, int &length_of_data);
-    void close_socket();
-public:
-    bool isOpened;
-    bool isConnected;
-
+private:
+    int sockfd;
+    uint16_t port;
+    struct  sockaddr_in serv_addr;
+    struct hostent *server;
+    char server_ip[INET_ADDRSTRLEN];
 };
